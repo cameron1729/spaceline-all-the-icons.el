@@ -1,3 +1,4 @@
+;; -*- mode: emacs-lisp; lexical-binding: t -*-
 ;;; spaceline-all-the-icons-segments.el --- Segments used by Spaceline All The Icons Theme
 
 ;; Copyright (C) 2017  Dominic Charlesworth <dgc336@gmail.com>
@@ -25,6 +26,7 @@
 (require 'memoize)
 (require 'spaceline)
 (require 'all-the-icons)
+(require 'vc)
 
 ;;; Forward declarations of Optional Dependencies
 (declare-function projectile-project-root "ext:projectile.el")
@@ -810,14 +812,16 @@ type, (i.e. added, deleted, modified) of a diff/hunk."
 
 (defvar spaceline-all-the-icons--git-ahead 0 "The number of commits ahead the current buffer is.")
 (defun spaceline-all-the-icons--git-ahead-update (&rest args)
-  "Update the current git ahead  ARGS is just placeholder."
-  (when (and spaceline-all-the-icons-git-ahead-p
+    "Update the current git ahead. ARGS is just a placeholder."
+(when (and spaceline-all-the-icons-git-ahead-p
              buffer-file-name vc-mode (string-match "Git" vc-mode))
-    (setq-local spaceline-all-the-icons--git-ahead
-                (with-temp-buffer
-                  (ignore-errors (vc-git-log-outgoing (current-buffer) ""))
-                  (if (string-match-p "^fatal:" (buffer-string)) 0
-                    (count-lines (point-min) (point-max)))))))
+    (let* ((current-buf (current-buffer))
+           (git-output-buffer (get-buffer-create "*Git Output*")))
+      (with-current-buffer git-output-buffer (ignore-errors (vc-git-log-outgoing (current-buffer) ""))
+                           (vc-exec-after (lambda ()
+                                            (with-current-buffer current-buf
+                                              (setq-local spaceline-all-the-icons--git-ahead (with-current-buffer git-output-buffer (if (string-match-p "^fatal:" (buffer-string)) 0 (count-lines (point-min) (point-max))))))))))))
+
 
 (spaceline-define-segment all-the-icons-git-ahead
   "An `all-the-icons' segment to display the number of commits a git branch is a head of upstream."
