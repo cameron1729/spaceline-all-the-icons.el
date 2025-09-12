@@ -229,7 +229,7 @@
 
 (defconst spaceline-all-the-icons-icon-set--git-ahead
   `((arrow ,(propertize "🡅" 'face '(:inherit)))
-    (commit ,(propertize (all-the-icons-octicon "git-commit" :v-adjust 0)
+    (commit ,(propertize (all-the-icons-octicon "git-commit" :v-adjust 0.1)
                          'face `(:family ,(all-the-icons-octicon-family) :inherit)))))
 
 ;;; Git Status Icons
@@ -747,7 +747,7 @@ It is only enabled when you're not in a project or if the projectile segment is 
   "Wrapper to render git statistics ICON with TEXT using FACE.
 When FAMILY is provided, put `:family' property into face."
   (let* ((family (all-the-icons-icon-family icon))
-         (height (if family 1.0 1.2))
+         (height 0.95)
          (icon-face `(:foreground ,(spaceline-all-the-icons--face-foreground face)
                       :height ,(spaceline-all-the-icons--height height))))
 
@@ -757,7 +757,8 @@ When FAMILY is provided, put `:family' property into face."
      (propertize " " 'face `(:height ,(spaceline-all-the-icons--height 0.2)))
      (propertize (format "%s" text)
                  'face `(:foreground ,(spaceline-all-the-icons--face-foreground face)
-                         :height ,(spaceline-all-the-icons--height height))))))
+                         :height ,(spaceline-all-the-icons--height height))
+                 'display '(raise 0.1)))))
 
 (defmacro spaceline-all-the-icons--git-stats-reducer (name el-f sl-f hunk-f type-f)
   "Macro to define reducer to calculate Added, Deleted & Modified lines in git.
@@ -830,7 +831,9 @@ type, (i.e. added, deleted, modified) of a diff/hunk."
      (concat
       (spaceline-all-the-icons-icon-set-git-ahead)
       (propertize " " 'face `(:height ,(spaceline-all-the-icons--height 0.3) :inherit))
-      (propertize (format "%s" spaceline-all-the-icons--git-ahead) 'face `(:height ,(spaceline-all-the-icons--height 0.9) :inherit)))
+      (propertize (format "%s" spaceline-all-the-icons--git-ahead)
+                  'face `(:height ,(spaceline-all-the-icons--height 0.95) :inherit)
+                  'display '(raise 0.1)))
      'mouse-face (spaceline-all-the-icons--highlight)
      'help-echo (format "You are currently %s commit%s ahead of `%s'"
                         spaceline-all-the-icons--git-ahead
