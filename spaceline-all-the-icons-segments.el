@@ -811,18 +811,22 @@ type, (i.e. added, deleted, modified) of a diff/hunk."
   :when (and active
              (not (equal '(0 0 0) (spaceline-all-the-icons--git-statistics)))))
 
-(defvar spaceline-all-the-icons--git-ahead 0 "The number of commits ahead the current buffer is.")
-(defun spaceline-all-the-icons--git-ahead-update (&rest args)
-    "Update the current git ahead. ARGS is just a placeholder."
-(when (and spaceline-all-the-icons-git-ahead-p
-             buffer-file-name vc-mode (string-match "Git" vc-mode))
-    (let* ((current-buf (current-buffer))
-           (git-output-buffer (get-buffer-create "*Git Output*")))
-      (with-current-buffer git-output-buffer (ignore-errors (vc-git-log-outgoing (current-buffer) ""))
-                           (vc-exec-after (lambda ()
-                                            (with-current-buffer current-buf
-                                              (setq-local spaceline-all-the-icons--git-ahead (with-current-buffer git-output-buffer (if (string-match-p "^fatal:" (buffer-string)) 0 (count-lines (point-min) (point-max))))))))))))
-
+(defun spaceline-all-the-icons--git-ahead-update (&rest _args)
+  "Update the per-buffer ahead count using `git rev-list --count @{upstream}..HEAD`."
+  (when (and spaceline-all-the-icons-git-ahead-p
+             buffer-file-name
+             vc-mode
+             (string-match "Git" vc-mode))
+    (setq-local
+     spaceline-all-the-icons--git-ahead
+     (condition-case _
+         (with-temp-buffer
+           (let ((default-directory (or (vc-root-dir) default-directory)))
+             (if (eq 0 (process-file "git" nil t nil
+                                     "rev-list" "--count" "@{upstream}..HEAD"))
+                 (string-to-number (string-trim (buffer-string)))
+               0)))
+       (error 0)))))
 
 (spaceline-define-segment all-the-icons-git-ahead
   "An `all-the-icons' segment to display the number of commits a git branch is a head of upstream."
